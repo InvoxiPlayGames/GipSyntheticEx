@@ -74,7 +74,7 @@ int SyntheticHooks_SetMetadata(BYTE* metadata_blob, int metadata_size_) {
 UINT8 create_metadata_sigs[] = { 0x41, 0x81, 0xF9, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0xBB, 0x57, 0x00, 0x07, 0x80 };
 UINT8 create_metadata_mask[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 UINT8 create_metadata_start[] = { 0x40, 0x53, 0x55, 0x56 };
-int create_metadata_offset = 0x25;
+int create_metadata_offset = 0x26;
 
 UINT8 make_hello_sigs[] = { 0xb8, 0x57, 0x00, 0x07, 0x80, 0x00, 0x00, 0xb8, 0x5e, 0x04, 0x00, 0x00 };
 UINT8 make_hello_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff };
@@ -114,8 +114,17 @@ finished:
 		current_target = NULL;
 	// if we have a target candidate, go backwards to find the function start
 	if (current_target != NULL) {
-		current_target -= start_offset;
-		if (memcmp(current_target, start, start_size) != 0)
+		UINT8* go_backwards = current_target;
+		int found_backwards = 0;
+		for (int i = 0; i < start_offset; i++) {
+			go_backwards -= 1;
+			if (memcmp(go_backwards, start, start_size) == 0) {
+				current_target = go_backwards;
+				found_backwards = 1;
+				break;
+			}
+		}
+		if (!found_backwards)
 			current_target = NULL;
 	}
 	return (void*)current_target;
